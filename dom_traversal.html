@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DOM Traversal DEMO</title>
+  <style>
+    /* Profile Header Styling */
+    header {
+      background-color: #eef;
+      padding: 10px;
+      border-bottom: 2px solid #ccc;
+      margin-bottom: 10px;
+    }
+    .grandparent, .parent, .child {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .grandparent {
+     background-color: lightgreen;
+    }
+    .parent {
+      background-color: yellow;
+    }
+    .child {
+      background-color: lightblue;
+    }
+    .highlight {
+      border: 2px solid black;
+      box-shadow: 0 0 10px black;
+    }
+    button {
+      background-color: pink;
+      color: white;
+      padding: 10px 5px;
+      border: none;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: orange;
+    }
+  <style>
+    .button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+    }
+    .button-row {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    }
+    .button-row button {
+    background-color: pink;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    }
+  </style>
+</head>
+  
+<body>
+  <!-- DOM Tree -->
+  <div id="tree" class="grandparent">
+    Grandparent
+    <div class="parent">Parent 1
+      <div class="child">Child 1</div>
+      <div class="child">Child 2</div>
+    </div>
+    <div class="parent">Parent 2
+      <div class="child">Child 2</div>
+      <div class="child">Child 3</div>
+    </div>
+  </div> 
+  <div>
+    <div class="button-container">
+    <div class="button-row">
+    <button onclick="traverseDown()">Traverse Down</button>
+    <button onclick="traverseUp()">Traverse Up</button>
+    <button onclick="traverseNext()">Next Sibling</button>
+    </div>
+      <div class="button-row">
+    <button onclick="traversePrevious()">Previous Sibling</button>
+    <button onclick="addChild()">Add Child</button>
+    <button onclick="deleteNode()">Delete Current</button>
+  </div>
+    </div>
+
+  <script>
+    let selectedNode = null;
+
+    // Add event listeners for selection
+    document.querySelectorAll('.grandparent, .parent, .child').forEach(node => {
+      node.addEventListener('click', function (e) {
+        e.stopPropagation();
+        selectNode(this);
+      });
+    });
+
+    function selectNode(node) {
+      if (selectedNode) {
+        selectedNode.classList.remove('highlight');
+      }
+      selectedNode = node;
+      selectedNode.classList.add('highlight');
+    }
+
+    function traverseDown() {
+      if (!selectedNode) return;
+      let child = [...selectedNode.children].find(c => c.classList.contains('parent') || c.classList.contains('child'));
+      if (child) selectNode(child);
+    }
+
+    function traverseUp() {
+      if (!selectedNode) return;
+      let parent = selectedNode.parentElement;
+      if (parent && (parent.classList.contains('grandparent') || parent.classList.contains('parent'))) {
+        selectNode(parent);
+      }
+    }
+
+    function traverseNext() {
+      if (!selectedNode) return;
+      let next = selectedNode.nextElementSibling;
+      if (next && next.classList.contains(selectedNode.classList[0])) {
+        selectNode(next);
+      }
+    }
+
+    function traversePrevious() {
+      if (!selectedNode) return;
+      let prev = selectedNode.previousElementSibling;
+      if (prev && prev.classList.contains(selectedNode.classList[0])) {
+        selectNode(prev);
+      }
+    }
+
+    function addChild() {
+      if (!selectedNode) return;
+
+      if (selectedNode.classList.contains('grandparent')) {
+        let parent = document.createElement('div');
+        parent.className = 'parent';
+        parent.textContent = 'New Parent';
+        for (let i = 1; i <= 2; i++) {
+          let child = document.createElement('div');
+          child.className = 'child';
+          child.textContent = `New Child ${i}`;
+          child.addEventListener('click', function (e) {
+            e.stopPropagation();
+            selectNode(this);
+          });
+          parent.appendChild(child);
+        }
+        parent.addEventListener('click', function (e) {
+          e.stopPropagation();
+          selectNode(this);
+        });
+        selectedNode.appendChild(parent);
+      } else if (selectedNode.classList.contains('parent')) {
+        let child = document.createElement('div');
+        child.className = 'child';
+        child.textContent = 'New Child';
+        child.addEventListener('click', function (e) {
+          e.stopPropagation();
+          selectNode(this);
+        });
+        selectedNode.appendChild(child);
+      } else {
+        alert("Cannot add child to a child node.");
+      }
+    }
+
+    function deleteNode() {
+      if (!selectedNode) return;
+      if (selectedNode.classList.contains('grandparent')) {
+        alert("Cannot delete the grandparent node.");
+        return;
+      }
+      let parent = selectedNode.parentElement;
+      parent.removeChild(selectedNode);
+      selectedNode = null;
+    }
+    
+  </script>
+</body>
+</html>
